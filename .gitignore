@@ -1,0 +1,7 @@
+dist/
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.DS_Store
+scripts/deploy.env

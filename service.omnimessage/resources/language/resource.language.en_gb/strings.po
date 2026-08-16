@@ -1,0 +1,105 @@
+# Kodi Media Center language file
+# Addon Name: Omni Message
+# Addon id: service.omnimessage
+# Addon Provider: nemik
+msgid ""
+msgstr ""
+"Project-Id-Version: service.omnimessage\n"
+"Report-Msgid-Bugs-To: https://github.com/nemik/kodi-omni-message\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en_GB\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30000"
+msgid "General"
+msgstr ""
+
+msgctxt "#30001"
+msgid "Message"
+msgstr ""
+
+msgctxt "#30002"
+msgid "Block playback"
+msgstr ""
+
+msgctxt "#30003"
+msgid "Title"
+msgstr ""
+
+msgctxt "#30004"
+msgid "Message text"
+msgstr ""
+
+msgctxt "#30005"
+msgid "Shown instead of playing the media."
+msgstr ""
+
+msgctxt "#30006"
+msgid "Show as"
+msgstr ""
+
+msgctxt "#30007"
+msgid "Dialog"
+msgstr ""
+
+msgctxt "#30008"
+msgid "Notification"
+msgstr ""
+
+msgctxt "#30009"
+msgid "Notification duration (seconds)"
+msgstr ""
+
+msgctxt "#30010"
+msgid "Unlock"
+msgstr ""
+
+msgctxt "#30011"
+msgid "PIN"
+msgstr ""
+
+msgctxt "#30012"
+msgid "Digits only. Leave empty to offer no way to unlock playback."
+msgstr ""
+
+msgctxt "#30013"
+msgid "Unlock for (minutes)"
+msgstr ""
+
+msgctxt "#30014"
+msgid "How long playback stays allowed after a correct PIN. Set to 0 to allow only the item that was blocked."
+msgstr ""
+
+msgctxt "#30015"
+msgid "Advanced"
+msgstr ""
+
+msgctxt "#30016"
+msgid "Debug logging"
+msgstr ""
+
+msgctxt "#30017"
+msgid "Write extra detail to the Kodi log."
+msgstr ""
+
+msgctxt "#30020"
+msgid "OK"
+msgstr ""
+
+msgctxt "#30021"
+msgid "Enter PIN"
+msgstr ""
+
+msgctxt "#30022"
+msgid "Enter PIN to allow playback"
+msgstr ""
+
+msgctxt "#30023"
+msgid "Incorrect PIN"
+msgstr ""
+
+msgctxt "#30024"
+msgid "Playback allowed for {} minutes"
+msgstr ""

@@ -1,0 +1,20 @@
+[project]
+name = "kodi-omni-message"
+version = "1.0.0"
+description = "Kodi add-on that shows a message instead of playing media"
+requires-python = ">=3.11"
+dependencies = []
+
+# Dev tooling only. The add-on itself has no runtime dependencies: Kodi ships
+# its own Python and the xbmc* modules are built in.
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# tests/stubs stands in for Kodi's built-in xbmc* modules, service.omnimessage
+# is the add-on root Kodi itself puts on sys.path.
+pythonpath = ["service.omnimessage", "tests/stubs"]
