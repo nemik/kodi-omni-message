@@ -75,6 +75,118 @@ Kodi has no pre-playback hook, so interception works by stopping playback the in
 `onPlayBackStarted` (with `onAVStarted` as a backstop) captures the path, calls `stop()`, and hands
 off to the service thread — Kodi's player thread must not be blocked with modal UI.
 
+## Remote control over JSON-RPC (Homebridge, etc.)
+
+The **Block playback** master switch can be flipped over Kodi's JSON-RPC API, so a HomeKit switch
+maps straight onto it: **on** = the message is shown instead of playing anything, **off** = all
+media plays normally. This is not the timed PIN unlock — off stays off until something turns it
+back on, whether that's Homebridge, `scripts/rpc.sh`, or the add-on's settings screen in Kodi. The
+choice is written to the add-on settings, so it survives a Kodi restart.
+
+Turn on **Settings → Services → Control → Allow remote control via HTTP** on the Kodi box first.
+
+**On** — block playback and show the message. Needs no PIN, since it only ever removes access:
+
+```bash
+curl -u kodi:kodi -H 'Content-Type: application/json' http://kodi:8080/jsonrpc -d '{
+  "jsonrpc": "2.0", "id": 1, "method": "JSONRPC.NotifyAll",
+  "params": {"sender": "homebridge", "message": "enable", "data": {}}
+}'
+```
+
+Any PIN unlock still counting down is cancelled, so "on" means blocked right now rather than once
+the window runs out.
+
+**Off** — allow all playback, indefinitely:
+
+```bash
+curl -u kodi:kodi -H 'Content-Type: application/json' http://kodi:8080/jsonrpc -d '{
+  "jsonrpc": "2.0", "id": 1, "method": "JSONRPC.NotifyAll",
+  "params": {"sender": "homebridge", "message": "disable",
+             "data": {"pin": "1234"}}
+}'
+```
+
+`pin` is required whenever a PIN is configured; a wrong one is refused and logged.
+
+**Read the state** — the add-on publishes it as home window properties, which JSON-RPC can read
+back (notifications themselves are one-way, so this is how a switch shows real state):
+
+```bash
+curl -u kodi:kodi -H 'Content-Type: application/json' http://kodi:8080/jsonrpc -d '{
+  "jsonrpc": "2.0", "id": 1, "method": "XBMC.GetInfoLabels",
+  "params": {"labels": ["Window(Home).Property(omnimessage.enabled)",
+                        "Window(Home).Property(omnimessage.blocking)",
+                        "Window(Home).Property(omnimessage.unlocked)",
+                        "Window(Home).Property(omnimessage.unlocked_seconds)"]}
+}'
+```
+
+| Property | Meaning |
+| --- | --- |
+| `omnimessage.enabled` | **The master switch — what a Homebridge switch should track.** `1` = blocking is on |
+| `omnimessage.blocking` | `1` when the next play attempt will actually be blocked (`0` while a PIN unlock is running) |
+| `omnimessage.unlocked` | `1` while a PIN unlock window is open |
+| `omnimessage.unlocked_seconds` | Seconds left on that window |
+
+From this repo, `scripts/rpc.sh` wraps all three using `deploy.env` (add `KODI_UNLOCK_PIN=1234`
+to it, or pass `OMNI_PIN=`):
+
+```bash
+bash scripts/rpc.sh on
+bash scripts/rpc.sh off
+bash scripts/rpc.sh status
+```
+
+### Homebridge
+
+Any HTTP-request plugin works — the two POSTs above are the whole contract. With
+[homebridge-http-switch](https://github.com/Supereg/homebridge-http-switch), a stateful switch
+whose state comes from Kodi rather than from HomeKit's memory:
+
+```json
+{
+  "accessory": "HTTP-SWITCH",
+  "name": "Kodi Message",
+  "switchType": "stateful",
+  "onUrl": {
+    "url": "http://kodi:8080/jsonrpc",
+    "method": "POST",
+    "headers": { "Content-Type": "application/json" },
+    "auth": { "username": "kodi", "password": "kodi" },
+    "body": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"JSONRPC.NotifyAll\",\"params\":{\"sender\":\"homebridge\",\"message\":\"enable\",\"data\":{}}}"
+  },
+  "offUrl": {
+    "url": "http://kodi:8080/jsonrpc",
+    "method": "POST",
+    "headers": { "Content-Type": "application/json" },
+    "auth": { "username": "kodi", "password": "kodi" },
+    "body": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"JSONRPC.NotifyAll\",\"params\":{\"sender\":\"homebridge\",\"message\":\"disable\",\"data\":{\"pin\":\"1234\"}}}"
+  },
+  "statusUrl": {
+    "url": "http://kodi:8080/jsonrpc",
+    "method": "POST",
+    "headers": { "Content-Type": "application/json" },
+    "auth": { "username": "kodi", "password": "kodi" },
+    "body": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"XBMC.GetInfoLabels\",\"params\":{\"labels\":[\"Window(Home).Property(omnimessage.enabled)\"]}}"
+  },
+  "statusPattern": "\\(omnimessage.enabled\\)\":\"1\"",
+  "pullInterval": 30000
+}
+```
+
+Switch **on** = the message is shown instead of playing media; **off** = everything plays. Nothing
+expires on its own, so the switch stays where you put it. `pullInterval` just keeps HomeKit honest
+if the setting is changed on the TV instead.
+
+Note that `statusUrl` needs a POST body, which some HTTP plugins don't support — if yours only does
+GET, point it at a tiny shim (or drop `statusUrl`/`statusPattern` and let the switch keep state in
+HomeKit, at the cost of drifting when someone changes the setting in Kodi).
+
+> The PIN check here is a convenience guard, not a security boundary. Anyone who can reach Kodi's
+> JSON-RPC port can disable the add-on outright with `Addons.SetAddonEnabled` — so keep that port on
+> a trusted network, with a username and password set.
+
 ## Getting builds onto a test PC
 
 Two paths. The first is for iterating, the second is for verifying a real install.

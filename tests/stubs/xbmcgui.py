@@ -14,12 +14,30 @@ ALPHANUM_HIDE_INPUT = 2
 CALLS = []
 YESNO_ANSWERS = []
 INPUT_ANSWERS = []
+WINDOW_PROPERTIES = {}
 
 
 def reset():
     CALLS.clear()
     YESNO_ANSWERS.clear()
     INPUT_ANSWERS.clear()
+    WINDOW_PROPERTIES.clear()
+
+
+class Window:
+    """Window properties are global in Kodi; one dict stands in for them."""
+
+    def __init__(self, window_id=0):
+        self.window_id = window_id
+
+    def setProperty(self, key, value):
+        WINDOW_PROPERTIES[key] = value
+
+    def getProperty(self, key):
+        return WINDOW_PROPERTIES.get(key, "")
+
+    def clearProperty(self, key):
+        WINDOW_PROPERTIES.pop(key, None)
 
 
 class Dialog:

@@ -40,6 +40,12 @@ class Addon:
     def getSettingInt(self, key):
         return int(SETTINGS[key])
 
+    def setSettingBool(self, key, value):
+        SETTINGS[key] = bool(value)
+
+    def setSettingString(self, key, value):
+        SETTINGS[key] = str(value)
+
     def getLocalizedString(self, string_id):
         return STRINGS.get(string_id, "")
 

@@ -61,6 +61,11 @@ def load():
     )
 
 
+def set_enabled(enabled):
+    """Persist the master switch, so it survives a Kodi restart."""
+    xbmcaddon.Addon(ADDON_ID).setSettingBool("enabled", bool(enabled))
+
+
 def log(message, level=xbmc.LOGINFO):
     xbmc.log("[{}] {}".format(ADDON_ID, message), level)
 

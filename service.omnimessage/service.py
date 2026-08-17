@@ -7,6 +7,7 @@ item, then shows the message and offers the PIN unlock.
 import xbmc
 
 from resources.lib import settings as settings_module
+from resources.lib import state
 from resources.lib import ui
 from resources.lib.blocker import OmniMonitor, OmniPlayer
 from resources.lib.policy import Policy
@@ -49,14 +50,22 @@ def run():
     monitor = OmniMonitor(policy)
     settings_module.log("service started")
 
+    published = state.publish(policy)
     while not monitor.abortRequested():
         if player.blocked.is_set():
             player.blocked.clear()
             handle_block(policy, player)
+
+        # Only writes when something moved: at most once a second while an
+        # unlock counts down, and not at all while idle.
+        if state.snapshot(policy) != published:
+            published = state.publish(policy)
+
         if monitor.waitForAbort(POLL_SECONDS):
             break
 
     settings_module.log("service stopped")
+    state.clear()
     del player
     del monitor
 
